@@ -378,6 +378,6 @@ None. Design is complete and approved.
 
 ## References
 
-- API Documentation: API.md in pln-husky-standalone repo
+- API Documentation: [API.md](../../API.md) in this repository
 - OAuth2 Endpoints: POST /v1/auth, POST /v1/auth/token
 - Search Endpoints: GET /v1/search, GET /v1/members/search
