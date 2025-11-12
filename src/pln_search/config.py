@@ -70,4 +70,4 @@ class ConfigManager:
             API base URL
         """
         import os
-        return os.environ.get("PLN_API_URL", "https://api.pln.network")
+        return os.environ.get("PLN_API_URL", "https://api-directory.plnetwork.io")
