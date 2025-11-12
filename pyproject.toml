@@ -1,0 +1,17 @@
+[project]
+name = "pln-search"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Danny O'Brien", email = "danny@spesh.com" }
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+pln-search = "pln_search:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
