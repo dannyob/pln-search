@@ -97,8 +97,8 @@ class PLNAPIClient:
         Returns:
             List of Member objects
         """
-        params = {"q": query, "limit": limit}
-        data = self._make_request("GET", "/v1/members/search", params=params)
+        params = {"name__icontains": query, "limit": limit}
+        data = self._make_request("GET", "/v1/members", params=params)
 
         members = []
         for item in data.get("members", []):

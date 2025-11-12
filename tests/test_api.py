@@ -25,8 +25,9 @@ def test_search_members(requests_mock):
 
     # Mock API response
     requests_mock.get(
-        "https://api.test.com/v1/members/search",
+        "https://api.test.com/v1/members",
         json={
+            "count": 1,
             "members": [
                 {
                     "uid": "m123",
@@ -37,8 +38,7 @@ def test_search_members(requests_mock):
                     "skills": [{"title": "Python"}, {"title": "Rust"}],
                     "githubHandler": "johndoe"
                 }
-            ],
-            "total": 1
+            ]
         }
     )
 
