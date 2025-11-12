@@ -1,22 +1,18 @@
 # pln-search
 
-CLI tool for searching the PLN Directory API.
+Command-line tool for searching the PLN Directory API.
 
-## Documentation
+## Installation
 
-- **Design Document:** [docs/plans/2025-11-11-pln-search-cli-design.md](docs/plans/2025-11-11-pln-search-cli-design.md)
-- **Implementation Plan:** [docs/plans/2025-11-11-pln-search-implementation.md](docs/plans/2025-11-11-pln-search-implementation.md)
-
-## Quick Start
-
-Installation:
 ```bash
 uv pip install -e .
 ```
 
-Authentication:
+## Usage
+
+Authenticate:
 ```bash
-pln-search auth login
+pln-search auth
 ```
 
 Search:
@@ -27,6 +23,26 @@ pln-search --teams "Protocol Labs"    # Search teams
 pln-search --projects "IPFS"          # Search projects
 ```
 
+Options:
+```bash
+pln-search "query" --limit 50         # Show up to 50 results
+pln-search "query" --json             # JSON output
+pln-search "query" --no-color         # Plain text output
+```
+
 ## Development
 
-See implementation plan for detailed task breakdown.
+Install dependencies:
+```bash
+make install-dev
+```
+
+Run tests:
+```bash
+make test
+```
+
+Format code:
+```bash
+make format
+```
