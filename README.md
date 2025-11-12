@@ -18,11 +18,10 @@ The PLN Directory uses Privy for web authentication. Until we implement a full O
 
 1. Visit https://directory.plnetwork.io/ and log in
 2. Open browser Developer Tools (F12 or right-click → Inspect)
-3. Go to the Network tab
-4. Browse the site (view members, teams, etc.)
-5. Find a request to the API (look for requests to the API URL)
-6. Click on the request and find the 'Authorization' header
-7. Copy the token after 'Bearer ' (the long string)
+3. Go to the **Application** tab (Chrome) or **Storage** tab (Firefox)
+4. In the left sidebar, expand **Cookies** and select: `https://directory.plnetwork.io`
+5. Find the **`authToken`** cookie and copy its VALUE (a long string starting with `eyJ...`)
+6. Optional: Also copy the **`refreshToken`** cookie value
 
 **Step 2: Configure the token**
 

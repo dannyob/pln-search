@@ -2,7 +2,16 @@
 
 ## Summary
 
-The PLN Directory uses **Privy** (https://privy.io) as their authentication provider for the web interface. This creates some complexity for implementing CLI authentication.
+The PLN Directory uses **Privy** (https://privy.io) as their authentication provider for the web interface. Authentication tokens are stored in **browser cookies**, not Authorization headers. This creates some complexity for implementing CLI authentication.
+
+## Key Discovery: Cookie-Based Authentication
+
+The web application stores authentication in **cookies**:
+- **`authToken`** - JWT access token (starts with `eyJ...`)
+- **`refreshToken`** - JWT refresh token
+- **`userInfo`** - JSON with user details (name, email, uid, accessLevel, etc.)
+
+The API expects these tokens to be sent as `Authorization: Bearer <token>` headers, so the frontend extracts them from cookies and sends them in requests.
 
 ## What I Found
 
@@ -61,9 +70,13 @@ def start_auth_flow(self) -> None:
 
 **Workaround for testing:**
 1. User logs in via web browser at https://directory.plnetwork.io/
-2. User opens browser dev tools → Network tab
-3. Find a request to the API and copy the `Authorization: Bearer <token>` header
-4. Manually save to `~/.config/pln-search/credentials.json`:
+2. User opens browser dev tools → Application/Storage tab → Cookies
+3. Find the `authToken` cookie and copy its value (JWT starting with `eyJ...`)
+4. Optionally copy the `refreshToken` cookie value
+5. Use the CLI command: `pln-search auth token --interactive`
+6. Paste the tokens when prompted
+
+Alternatively, manually save to `~/.config/pln-search/credentials.json`:
 ```json
 {
   "access_token": "eyJhbGc...",
