@@ -89,20 +89,59 @@ class OAuth2Flow:
         except requests.exceptions.RequestException as e:
             raise AuthenticationError(f"Token refresh failed: {e}")
 
+    def set_manual_credentials(self, access_token: str, refresh_token: str = None) -> None:
+        """Manually set credentials from token.
+
+        Args:
+            access_token: Access token from PLN API
+            refresh_token: Optional refresh token
+        """
+        # For now, set a far future expiration (1 year)
+        # In reality, tokens expire much sooner, but refresh_token will handle it
+        from datetime import timedelta
+        expires_at = (datetime.now() + timedelta(days=365)).isoformat()
+
+        credentials = {
+            "access_token": access_token,
+            "refresh_token": refresh_token or access_token,
+            "expires_at": expires_at,
+            "user_info": {},
+        }
+
+        self.config.save_credentials(credentials)
+
     def start_auth_flow(self) -> None:
         """Start OAuth2 browser authentication flow.
 
-        This will:
-        1. Create auth request
-        2. Open browser to consent page
-        3. Start localhost server
-        4. Exchange code for tokens
-        5. Save credentials
+        For now, this provides instructions for manual token setup.
+        Full OAuth2 browser flow is not yet implemented.
         """
-        # TODO: Implement full OAuth2 flow
-        # For now, print instructions
-        print("OAuth2 browser flow not yet implemented.")
-        print("Manual token entry:")
-        print("1. Obtain access token from PLN API")
-        print("2. Save to credentials manually")
-        raise NotImplementedError("Full OAuth2 flow coming soon")
+        print("=" * 70)
+        print("MANUAL TOKEN SETUP")
+        print("=" * 70)
+        print()
+        print("The PLN Directory uses Privy for web authentication, which is not")
+        print("suitable for CLI tools. Until we implement a proper OAuth2 flow,")
+        print("please set up authentication manually:")
+        print()
+        print("1. Visit https://directory.plnetwork.io/ and log in")
+        print()
+        print("2. Open browser Developer Tools (F12 or right-click → Inspect)")
+        print()
+        print("3. Go to the Network tab")
+        print()
+        print("4. Browse the site (view members, teams, etc.)")
+        print()
+        print("5. Find a request to the API (look for requests to the API URL)")
+        print()
+        print("6. Click on the request and find the 'Authorization' header")
+        print()
+        print("7. Copy the token after 'Bearer ' (the long string)")
+        print()
+        print("8. Run: pln-search auth token <your-token>")
+        print()
+        print("=" * 70)
+        print()
+        print("Alternative: Use 'pln-search auth token --interactive' to paste")
+        print("your token interactively.")
+        print("=" * 70)

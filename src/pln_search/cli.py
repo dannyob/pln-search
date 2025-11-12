@@ -9,49 +9,56 @@ from pln_search.api import PLNAPIClient, APIError
 from pln_search.formatters import OutputFormatter
 
 
-@click.group(invoke_without_command=True)
+@click.group()
+@click.pass_context
+def main(ctx):
+    """PLN Search - Search the PLN Directory API.
+
+    Examples:
+        pln-search search "John Doe"          # Global search
+        pln-search search --members "John"    # Search members
+        pln-search search --teams "Protocol"  # Search teams
+        pln-search auth login                 # Show auth setup
+        pln-search auth token --interactive   # Configure token
+    """
+    pass
+
+
+@main.command()
 @click.option("--members", "search_type", flag_value="members", help="Search members only")
 @click.option("--teams", "search_type", flag_value="teams", help="Search teams only")
 @click.option("--projects", "search_type", flag_value="projects", help="Search projects only")
 @click.option("--limit", default=20, help="Maximum results to show", type=int)
 @click.option("--json", "output_json", is_flag=True, help="Output JSON")
 @click.option("--no-color", is_flag=True, help="Plain text output")
-@click.option("--version", is_flag=True, help="Show version")
-@click.argument("query", required=False)
-@click.pass_context
-def main(ctx, search_type, limit, output_json, no_color, version, query):
-    """PLN Search - Search the PLN Directory API.
+@click.argument("query")
+def search(search_type, limit, output_json, no_color, query):
+    """Search the PLN Directory API.
 
     Examples:
-        pln-search "John Doe"                 # Global search
-        pln-search --members "John"           # Search members
-        pln-search --teams "Protocol"         # Search teams
-        pln-search --projects "IPFS"          # Search projects
-        pln-search "query" --json             # JSON output
+        pln-search search "John Doe"                 # Global search
+        pln-search search --members "John"           # Search members
+        pln-search search --teams "Protocol"         # Search teams
+        pln-search search --projects "IPFS"          # Search projects
+        pln-search search "query" --json             # JSON output
     """
-    # Handle version flag
-    if version:
-        click.echo(f"pln-search version {__version__}")
-        return
+    try:
+        _run_search(query, search_type, limit, output_json, no_color)
+    except AuthenticationError as e:
+        click.echo(f"✗ {e}", err=True)
+        sys.exit(2)
+    except APIError as e:
+        click.echo(f"✗ {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"✗ Unexpected error: {e}", err=True)
+        sys.exit(1)
 
-    # If no query and no subcommand, show help
-    if not query and ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
-        return
 
-    # Only run search if query provided
-    if query:
-        try:
-            _run_search(query, search_type, limit, output_json, no_color)
-        except AuthenticationError as e:
-            click.echo(f"✗ {e}", err=True)
-            sys.exit(2)
-        except APIError as e:
-            click.echo(f"✗ {e}", err=True)
-            sys.exit(1)
-        except Exception as e:
-            click.echo(f"✗ Unexpected error: {e}", err=True)
-            sys.exit(1)
+@main.command()
+def version():
+    """Show version information."""
+    click.echo(f"pln-search version {__version__}")
 
 
 def _run_search(query: str, search_type: str, limit: int, output_json: bool, no_color: bool):
@@ -135,6 +142,48 @@ def auth_logout():
     config = ConfigManager()
     config.clear_credentials()
     click.echo("✓ Logged out")
+
+
+@auth.command("token")
+@click.argument("access_token", required=False)
+@click.option("--interactive", "-i", is_flag=True, help="Enter token interactively")
+@click.option("--refresh-token", help="Optional refresh token")
+def auth_token(access_token, interactive, refresh_token):
+    """Set authentication token manually.
+
+    Usage:
+        pln-search auth token <token>              # Set token from argument
+        pln-search auth token --interactive        # Enter token interactively
+    """
+    try:
+        # Interactive mode
+        if interactive:
+            click.echo("Paste your access token (it will be hidden):")
+            access_token = click.prompt("Access Token", hide_input=True)
+
+            if click.confirm("Do you have a refresh token?", default=False):
+                refresh_token = click.prompt("Refresh Token", hide_input=True)
+
+        # Validate we have a token
+        if not access_token:
+            click.echo("✗ Error: No token provided", err=True)
+            click.echo("  Use: pln-search auth token <token>", err=True)
+            click.echo("  Or:  pln-search auth token --interactive", err=True)
+            sys.exit(1)
+
+        # Save credentials
+        config = ConfigManager()
+        auth_flow = OAuth2Flow(config.get_api_base_url(), config)
+        auth_flow.set_manual_credentials(access_token, refresh_token)
+
+        click.echo("✓ Token saved successfully")
+        click.echo(f"  Config: {config.get_config_dir()}/credentials.json")
+        click.echo()
+        click.echo("Test your authentication with: pln-search auth status")
+
+    except Exception as e:
+        click.echo(f"✗ Failed to save token: {e}", err=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
