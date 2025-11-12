@@ -97,8 +97,34 @@ class PLNAPIClient:
         Returns:
             List of Member objects
         """
-        # TODO: Implement in next task
-        raise NotImplementedError()
+        params = {"q": query, "limit": limit}
+        data = self._make_request("GET", "/v1/members/search", params=params)
+
+        members = []
+        for item in data.get("members", []):
+            # Extract location string
+            location = None
+            if item.get("location"):
+                loc = item["location"]
+                city = loc.get("city", "")
+                country = loc.get("country", "")
+                location = f"{city}, {country}".strip(", ")
+
+            # Extract skill titles
+            skills = [s["title"] for s in item.get("skills", [])]
+
+            member = Member(
+                uid=item["uid"],
+                name=item["name"],
+                email=item.get("email"),
+                bio=item.get("bio"),
+                location=location,
+                skills=skills,
+                github_handler=item.get("githubHandler"),
+            )
+            members.append(member)
+
+        return members
 
     def search_teams(self, query: str, limit: int = 20) -> list[Team]:
         """Search for teams by name.
@@ -110,8 +136,21 @@ class PLNAPIClient:
         Returns:
             List of Team objects
         """
-        # TODO: Implement in next task
-        raise NotImplementedError()
+        params = {"name__icontains": query, "limit": limit}
+        data = self._make_request("GET", "/v1/teams", params=params)
+
+        teams = []
+        for item in data if isinstance(data, list) else []:
+            team = Team(
+                uid=item["uid"],
+                name=item["name"],
+                short_description=item.get("shortDescription"),
+                website=item.get("website"),
+                member_count=len(item.get("teamMemberRoles", [])),
+            )
+            teams.append(team)
+
+        return teams
 
     def search_projects(self, query: str, limit: int = 20) -> list[Project]:
         """Search for projects by name.
@@ -123,8 +162,26 @@ class PLNAPIClient:
         Returns:
             List of Project objects
         """
-        # TODO: Implement in next task
-        raise NotImplementedError()
+        params = {"name__icontains": query, "limit": limit}
+        data = self._make_request("GET", "/v1/projects", params=params)
+
+        projects = []
+        for item in data if isinstance(data, list) else []:
+            # Extract team name
+            team_name = None
+            if item.get("maintainingTeam"):
+                team_name = item["maintainingTeam"].get("name")
+
+            project = Project(
+                uid=item["uid"],
+                name=item["name"],
+                description=item.get("description"),
+                maintaining_team=team_name,
+                looking_for_funding=item.get("lookingForFunding", False),
+            )
+            projects.append(project)
+
+        return projects
 
     def global_search(self, query: str) -> dict[str, Any]:
         """Search across all entity types.
