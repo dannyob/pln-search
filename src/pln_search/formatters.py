@@ -83,6 +83,43 @@ class OutputFormatter:
         """Print no results message."""
         print(f"No {entity_type} found.")
 
+    def _make_link(self, text: str, url: str) -> str:
+        """Wrap text in OSC 8 hyperlink escape codes.
+
+        Args:
+            text: Display text
+            url: URL to link to
+
+        Returns:
+            Text wrapped in OSC 8 codes (rich mode) or plain text (other modes)
+        """
+        if self.format_type != "rich":
+            return text
+        return f"\x1b]8;;{url}\x07{text}\x1b]8;;\x07"
+
+    def _make_directory_url(self, entity_type: str, uid: str) -> str:
+        """Generate PLN Directory profile URL.
+
+        Args:
+            entity_type: Type of entity ("members", "teams", "projects")
+            uid: Entity UID
+
+        Returns:
+            Full PLN Directory URL
+        """
+        return f"https://directory.plnetwork.io/{entity_type}/{uid}"
+
+    def _make_github_url(self, github_handler: str) -> str:
+        """Generate GitHub profile URL.
+
+        Args:
+            github_handler: GitHub username
+
+        Returns:
+            Full GitHub profile URL
+        """
+        return f"https://github.com/{github_handler}"
+
     # JSON formatters
     def _format_members_json(self, members: list[Member]) -> None:
         """Format members as JSON."""
@@ -114,11 +151,25 @@ class OutputFormatter:
             if len(member.skills) > 3:
                 skills_str += f" +{len(member.skills) - 3} more"
 
-            table.add_row(
+            # Make name clickable (links to directory profile)
+            name = self._make_link(
                 member.name,
+                self._make_directory_url("members", member.uid)
+            )
+
+            # Make GitHub handle clickable if present
+            github = member.github_handler or "-"
+            if member.github_handler:
+                github = self._make_link(
+                    member.github_handler,
+                    self._make_github_url(member.github_handler)
+                )
+
+            table.add_row(
+                name,
                 member.location or "-",
                 skills_str or "-",
-                member.github_handler or "-",
+                github,
             )
 
         self.console.print(table)
@@ -137,8 +188,14 @@ class OutputFormatter:
             if len(desc) > 50:
                 desc = desc[:47] + "..."
 
-            table.add_row(
+            # Make team name clickable (links to directory team page)
+            name = self._make_link(
                 team.name,
+                self._make_directory_url("teams", team.uid)
+            )
+
+            table.add_row(
+                name,
                 desc,
                 str(team.member_count),
                 team.website or "-",
@@ -160,8 +217,14 @@ class OutputFormatter:
             if len(desc) > 50:
                 desc = desc[:47] + "..."
 
-            table.add_row(
+            # Make project name clickable (links to directory project page)
+            name = self._make_link(
                 project.name,
+                self._make_directory_url("projects", project.uid)
+            )
+
+            table.add_row(
+                name,
                 desc,
                 project.maintaining_team or "-",
                 "Yes" if project.looking_for_funding else "No",

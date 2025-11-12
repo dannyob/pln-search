@@ -78,3 +78,169 @@ def test_format_members_plain():
         output = " ".join(calls)
         assert "Jane Doe" in output
         assert "NYC" in output
+
+
+def test_make_link_in_rich_mode():
+    """Test OSC 8 link generation in rich mode."""
+    formatter = OutputFormatter(format_type="rich")
+
+    result = formatter._make_link("Click me", "https://example.com")
+
+    # Should contain OSC 8 escape codes
+    assert result == "\x1b]8;;https://example.com\x07Click me\x1b]8;;\x07"
+
+
+def test_make_link_in_plain_mode():
+    """Test link generation returns plain text in plain mode."""
+    formatter = OutputFormatter(format_type="plain")
+
+    result = formatter._make_link("Click me", "https://example.com")
+
+    # Should return plain text without escape codes
+    assert result == "Click me"
+
+
+def test_make_link_in_json_mode():
+    """Test link generation returns plain text in JSON mode."""
+    formatter = OutputFormatter(format_type="json")
+
+    result = formatter._make_link("Click me", "https://example.com")
+
+    # Should return plain text without escape codes
+    assert result == "Click me"
+
+
+def test_make_directory_url_for_members():
+    """Test directory URL generation for members."""
+    formatter = OutputFormatter(format_type="rich")
+
+    result = formatter._make_directory_url("members", "abc123")
+
+    assert result == "https://directory.plnetwork.io/members/abc123"
+
+
+def test_make_directory_url_for_teams():
+    """Test directory URL generation for teams."""
+    formatter = OutputFormatter(format_type="rich")
+
+    result = formatter._make_directory_url("teams", "team456")
+
+    assert result == "https://directory.plnetwork.io/teams/team456"
+
+
+def test_make_directory_url_for_projects():
+    """Test directory URL generation for projects."""
+    formatter = OutputFormatter(format_type="rich")
+
+    result = formatter._make_directory_url("projects", "proj789")
+
+    assert result == "https://directory.plnetwork.io/projects/proj789"
+
+
+def test_make_github_url():
+    """Test GitHub URL generation."""
+    formatter = OutputFormatter(format_type="rich")
+
+    result = formatter._make_github_url("octocat")
+
+    assert result == "https://github.com/octocat"
+
+
+def test_format_members_rich_with_hyperlinks():
+    """Test that member names and GitHub handles become clickable in rich mode."""
+    from unittest.mock import patch
+    from rich.table import Table
+
+    members = [
+        Member(
+            uid="m123",
+            name="John Doe",
+            email="john@example.com",
+            bio="Engineer",
+            location="SF",
+            skills=["Python"],
+            github_handler="johndoe",
+        )
+    ]
+
+    formatter = OutputFormatter(format_type="rich")
+
+    # Capture what gets added to the table
+    with patch.object(Table, "add_row") as mock_add_row:
+        with patch.object(formatter.console, "print"):
+            formatter.format_members(members)
+
+    # Verify add_row was called with hyperlinked values
+    call_args = mock_add_row.call_args[0]
+    name_arg = call_args[0]
+    github_arg = call_args[3]
+
+    # Name should contain OSC 8 link to directory profile
+    assert "\x1b]8;;https://directory.plnetwork.io/members/m123\x07" in name_arg
+    assert "John Doe" in name_arg
+
+    # GitHub should contain OSC 8 link to GitHub profile
+    assert "\x1b]8;;https://github.com/johndoe\x07" in github_arg
+    assert "johndoe" in github_arg
+
+
+def test_format_teams_rich_with_hyperlinks():
+    """Test that team names become clickable in rich mode."""
+    from unittest.mock import patch
+    from rich.table import Table
+
+    teams = [
+        Team(
+            uid="t456",
+            name="Protocol Labs",
+            short_description="Building the future",
+            website="https://protocol.ai",
+            member_count=50,
+        )
+    ]
+
+    formatter = OutputFormatter(format_type="rich")
+
+    # Capture what gets added to the table
+    with patch.object(Table, "add_row") as mock_add_row:
+        with patch.object(formatter.console, "print"):
+            formatter.format_teams(teams)
+
+    # Verify add_row was called with hyperlinked team name
+    call_args = mock_add_row.call_args[0]
+    name_arg = call_args[0]
+
+    # Name should contain OSC 8 link to directory team page
+    assert "\x1b]8;;https://directory.plnetwork.io/teams/t456\x07" in name_arg
+    assert "Protocol Labs" in name_arg
+
+
+def test_format_projects_rich_with_hyperlinks():
+    """Test that project names become clickable in rich mode."""
+    from unittest.mock import patch
+    from rich.table import Table
+
+    projects = [
+        Project(
+            uid="p789",
+            name="IPFS",
+            description="InterPlanetary File System",
+            maintaining_team="Protocol Labs",
+            looking_for_funding=False,
+        )
+    ]
+
+    formatter = OutputFormatter(format_type="rich")
+
+    # Capture what gets added to the table
+    with patch.object(Table, "add_row") as mock_add_row:
+        with patch.object(formatter.console, "print"):
+            formatter.format_projects(projects)
+
+    # Verify add_row was called with hyperlinked project name
+    call_args = mock_add_row.call_args[0]
+    name_arg = call_args[0]
+
+    # Name should contain OSC 8 link to directory project page
+    assert "\x1b]8;;https://directory.plnetwork.io/projects/p789\x07" in name_arg
+    assert "IPFS" in name_arg
