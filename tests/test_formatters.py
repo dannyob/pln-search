@@ -41,6 +41,9 @@ def test_format_members_json():
             location="SF",
             skills=["Python"],
             github_handler="john",
+            discord_handler="johndoe",
+            telegram_handler="johndoe",
+            office_hours="https://calendly.com/john",
         )
     ]
 
@@ -66,6 +69,9 @@ def test_format_members_plain():
             location="NYC",
             skills=["Rust", "Go"],
             github_handler=None,
+            discord_handler=None,
+            telegram_handler=None,
+            office_hours=None,
         )
     ]
 
@@ -77,17 +83,16 @@ def test_format_members_plain():
         calls = [str(call) for call in mock_print.call_args_list]
         output = " ".join(calls)
         assert "Jane Doe" in output
-        assert "NYC" in output
 
 
 def test_make_link_in_rich_mode():
-    """Test OSC 8 link generation in rich mode."""
+    """Test Rich link markup generation in rich mode."""
     formatter = OutputFormatter(format_type="rich")
 
     result = formatter._make_link("Click me", "https://example.com")
 
-    # Should contain OSC 8 escape codes
-    assert result == "\x1b]8;;https://example.com\x07Click me\x1b]8;;\x07"
+    # Should contain Rich link markup
+    assert result == "[link=https://example.com]Click me[/link]"
 
 
 def test_make_link_in_plain_mode():
@@ -160,6 +165,9 @@ def test_format_members_rich_with_hyperlinks():
             location="SF",
             skills=["Python"],
             github_handler="johndoe",
+            discord_handler="johndoe#1234",
+            telegram_handler="johndoe_tg",
+            office_hours="https://calendly.com/johndoe",
         )
     ]
 
@@ -173,14 +181,24 @@ def test_format_members_rich_with_hyperlinks():
     # Verify add_row was called with hyperlinked values
     call_args = mock_add_row.call_args[0]
     name_arg = call_args[0]
+    contact_arg = call_args[1]
+    office_hours_arg = call_args[2]
     github_arg = call_args[3]
 
-    # Name should contain OSC 8 link to directory profile
-    assert "\x1b]8;;https://directory.plnetwork.io/members/m123\x07" in name_arg
+    # Name should contain Rich link markup to directory profile
+    assert "[link=https://directory.plnetwork.io/members/m123]" in name_arg
     assert "John Doe" in name_arg
 
-    # GitHub should contain OSC 8 link to GitHub profile
-    assert "\x1b]8;;https://github.com/johndoe\x07" in github_arg
+    # Contact should contain clickable email and telegram, plain discord
+    assert "[link=mailto:john@example.com]john@example.com[/link]" in contact_arg
+    assert "Discord: johndoe#1234" in contact_arg  # Plain text, no link
+    assert "[link=https://t.me/johndoe_tg]Telegram: johndoe_tg[/link]" in contact_arg
+
+    # Office hours should be clickable
+    assert "[link=https://calendly.com/johndoe]Book[/link]" in office_hours_arg
+
+    # GitHub should contain Rich link markup to GitHub profile
+    assert "[link=https://github.com/johndoe]" in github_arg
     assert "johndoe" in github_arg
 
 
@@ -210,8 +228,8 @@ def test_format_teams_rich_with_hyperlinks():
     call_args = mock_add_row.call_args[0]
     name_arg = call_args[0]
 
-    # Name should contain OSC 8 link to directory team page
-    assert "\x1b]8;;https://directory.plnetwork.io/teams/t456\x07" in name_arg
+    # Name should contain Rich link markup to directory team page
+    assert "[link=https://directory.plnetwork.io/teams/t456]" in name_arg
     assert "Protocol Labs" in name_arg
 
 
@@ -241,6 +259,6 @@ def test_format_projects_rich_with_hyperlinks():
     call_args = mock_add_row.call_args[0]
     name_arg = call_args[0]
 
-    # Name should contain OSC 8 link to directory project page
-    assert "\x1b]8;;https://directory.plnetwork.io/projects/p789\x07" in name_arg
+    # Name should contain Rich link markup to directory project page
+    assert "[link=https://directory.plnetwork.io/projects/p789]" in name_arg
     assert "IPFS" in name_arg

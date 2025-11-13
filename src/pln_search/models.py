@@ -14,6 +14,9 @@ class Member:
     location: str | None
     skills: list[str]
     github_handler: str | None
+    discord_handler: str | None
+    telegram_handler: str | None
+    office_hours: str | None
 
 
 @dataclass
