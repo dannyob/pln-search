@@ -13,10 +13,15 @@ def test_member_creation():
         location="San Francisco, CA",
         skills=["Python", "Rust"],
         github_handler="johndoe",
+        discord_handler="johndoe#1234",
+        telegram_handler="johndoe",
+        office_hours="https://calendly.com/johndoe",
     )
     assert member.uid == "m123"
     assert member.name == "John Doe"
     assert len(member.skills) == 2
+    assert member.discord_handler == "johndoe#1234"
+    assert member.office_hours == "https://calendly.com/johndoe"
 
 
 def test_member_optional_fields():
@@ -29,9 +34,14 @@ def test_member_optional_fields():
         location=None,
         skills=[],
         github_handler=None,
+        discord_handler=None,
+        telegram_handler=None,
+        office_hours=None,
     )
     assert member.email is None
     assert member.bio is None
+    assert member.discord_handler is None
+    assert member.office_hours is None
 
 
 def test_team_creation():

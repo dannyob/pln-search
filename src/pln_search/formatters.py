@@ -84,18 +84,19 @@ class OutputFormatter:
         print(f"No {entity_type} found.")
 
     def _make_link(self, text: str, url: str) -> str:
-        """Wrap text in OSC 8 hyperlink escape codes.
+        """Wrap text in Rich hyperlink markup.
 
         Args:
             text: Display text
             url: URL to link to
 
         Returns:
-            Text wrapped in OSC 8 codes (rich mode) or plain text (other modes)
+            Text wrapped in Rich link markup (rich mode) or plain text (other modes)
         """
         if self.format_type != "rich":
             return text
-        return f"\x1b]8;;{url}\x07{text}\x1b]8;;\x07"
+        # Use Rich's built-in link markup to avoid table formatting issues
+        return f"[link={url}]{text}[/link]"
 
     def _make_directory_url(self, entity_type: str, uid: str) -> str:
         """Generate PLN Directory profile URL.
@@ -142,20 +143,37 @@ class OutputFormatter:
         table = Table(title=f"Members ({len(members)} results)")
 
         table.add_column("Name", style="cyan", no_wrap=True)
-        table.add_column("Location", style="magenta")
-        table.add_column("Skills", style="green")
+        table.add_column("Contact", style="magenta")
+        table.add_column("Office Hours", style="green")
         table.add_column("GitHub", style="blue")
 
         for member in members:
-            skills_str = ", ".join(member.skills[:3])
-            if len(member.skills) > 3:
-                skills_str += f" +{len(member.skills) - 3} more"
-
             # Make name clickable (links to directory profile)
             name = self._make_link(
                 member.name,
                 self._make_directory_url("members", member.uid)
             )
+
+            # Build contact info (multi-line) with clickable links
+            contact_lines = []
+            if member.email:
+                email_link = self._make_link(member.email, f"mailto:{member.email}")
+                contact_lines.append(email_link)
+            if member.discord_handler:
+                # Discord requires numeric user ID for links, so keep as plain text
+                contact_lines.append(f"Discord: {member.discord_handler}")
+            if member.telegram_handler:
+                telegram_link = self._make_link(
+                    f"Telegram: {member.telegram_handler}",
+                    f"https://t.me/{member.telegram_handler}"
+                )
+                contact_lines.append(telegram_link)
+            contact = "\n".join(contact_lines) if contact_lines else "-"
+
+            # Make office hours clickable if present
+            office_hours = "-"
+            if member.office_hours:
+                office_hours = self._make_link("Book", member.office_hours)
 
             # Make GitHub handle clickable if present
             github = member.github_handler or "-"
@@ -167,8 +185,8 @@ class OutputFormatter:
 
             table.add_row(
                 name,
-                member.location or "-",
-                skills_str or "-",
+                contact,
+                office_hours,
                 github,
             )
 
@@ -238,15 +256,15 @@ class OutputFormatter:
         print(f"Members ({len(members)} results):")
         print()
         for member in members:
-            skills = ", ".join(member.skills[:3])
-            if len(member.skills) > 3:
-                skills += f" +{len(member.skills) - 3}"
-
             print(f"  {member.name}")
-            if member.location:
-                print(f"    Location: {member.location}")
-            if skills:
-                print(f"    Skills: {skills}")
+            if member.email:
+                print(f"    Email: {member.email}")
+            if member.discord_handler:
+                print(f"    Discord: {member.discord_handler}")
+            if member.telegram_handler:
+                print(f"    Telegram: {member.telegram_handler}")
+            if member.office_hours:
+                print(f"    Office Hours: {member.office_hours}")
             if member.github_handler:
                 print(f"    GitHub: {member.github_handler}")
             print()
