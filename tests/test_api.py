@@ -52,21 +52,25 @@ def test_search_members(requests_mock):
 
 
 def test_search_teams(requests_mock):
-    """Test searching for teams."""
+    """Test searching for teams with real API response format."""
     mock_auth = Mock()
     mock_auth.get_valid_token.return_value = "test_token"
 
+    # Real API returns {"count": N, "teams": [...]}
     requests_mock.get(
         "https://api.test.com/v1/teams",
-        json=[
-            {
-                "uid": "t123",
-                "name": "Protocol Labs",
-                "shortDescription": "Building the future",
-                "website": "https://protocol.ai",
-                "teamMemberRoles": [{"uid": "1"}, {"uid": "2"}]
-            }
-        ]
+        json={
+            "count": 1,
+            "teams": [
+                {
+                    "uid": "t123",
+                    "name": "Protocol Labs",
+                    "shortDescription": "Building the future",
+                    "website": "https://protocol.ai",
+                    "teamMemberRoles": [{"uid": "1"}, {"uid": "2"}]
+                }
+            ]
+        }
     )
 
     client = PLNAPIClient("https://api.test.com", mock_auth)
@@ -78,21 +82,25 @@ def test_search_teams(requests_mock):
 
 
 def test_search_projects(requests_mock):
-    """Test searching for projects."""
+    """Test searching for projects with real API response format."""
     mock_auth = Mock()
     mock_auth.get_valid_token.return_value = "test_token"
 
+    # Real API returns {"count": N, "projects": [...]}
     requests_mock.get(
         "https://api.test.com/v1/projects",
-        json=[
-            {
-                "uid": "p123",
-                "name": "IPFS",
-                "description": "InterPlanetary File System",
-                "maintainingTeam": {"name": "Protocol Labs"},
-                "lookingForFunding": False
-            }
-        ]
+        json={
+            "count": 1,
+            "projects": [
+                {
+                    "uid": "p123",
+                    "name": "IPFS",
+                    "description": "InterPlanetary File System",
+                    "maintainingTeam": {"name": "Protocol Labs"},
+                    "lookingForFunding": False
+                }
+            ]
+        }
     )
 
     client = PLNAPIClient("https://api.test.com", mock_auth)

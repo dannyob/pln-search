@@ -121,6 +121,9 @@ class PLNAPIClient:
                 location=location,
                 skills=skills,
                 github_handler=item.get("githubHandler"),
+                discord_handler=item.get("discordHandler"),
+                telegram_handler=item.get("telegramHandler"),
+                office_hours=item.get("officeHours"),
             )
             members.append(member)
 
@@ -140,7 +143,7 @@ class PLNAPIClient:
         data = self._make_request("GET", "/v1/teams", params=params)
 
         teams = []
-        for item in data if isinstance(data, list) else []:
+        for item in data.get("teams", []):
             team = Team(
                 uid=item["uid"],
                 name=item["name"],
@@ -166,7 +169,7 @@ class PLNAPIClient:
         data = self._make_request("GET", "/v1/projects", params=params)
 
         projects = []
-        for item in data if isinstance(data, list) else []:
+        for item in data.get("projects", []):
             # Extract team name
             team_name = None
             if item.get("maintainingTeam"):
