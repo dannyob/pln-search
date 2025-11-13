@@ -8,7 +8,11 @@ from pln_search.config import ConfigManager
 
 def test_get_valid_token_fresh(tmp_path, monkeypatch):
     """Test getting token when it's still valid."""
-    monkeypatch.setenv("HOME", str(tmp_path))
+    # Mock platformdirs to use temp directory
+    def mock_user_config_dir(app_name, app_author):
+        return str(tmp_path / ".config" / app_name)
+
+    monkeypatch.setattr("pln_search.config.user_config_dir", mock_user_config_dir)
 
     config = ConfigManager()
     config.save_credentials({
@@ -25,7 +29,11 @@ def test_get_valid_token_fresh(tmp_path, monkeypatch):
 
 def test_get_valid_token_missing(tmp_path, monkeypatch):
     """Test getting token when credentials missing."""
-    monkeypatch.setenv("HOME", str(tmp_path))
+    # Mock platformdirs to use temp directory
+    def mock_user_config_dir(app_name, app_author):
+        return str(tmp_path / ".config" / app_name)
+
+    monkeypatch.setattr("pln_search.config.user_config_dir", mock_user_config_dir)
 
     config = ConfigManager()
     auth = OAuth2Flow("https://api.test.com", config)

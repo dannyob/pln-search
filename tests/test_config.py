@@ -8,7 +8,10 @@ from pln_search.config import ConfigManager
 def test_get_config_dir(tmp_path, monkeypatch):
     """Test config directory is created."""
     # Mock platformdirs to use temp directory
-    monkeypatch.setenv("HOME", str(tmp_path))
+    def mock_user_config_dir(app_name, app_author):
+        return str(tmp_path / ".config" / app_name)
+
+    monkeypatch.setattr("pln_search.config.user_config_dir", mock_user_config_dir)
 
     config = ConfigManager()
     config_dir = config.get_config_dir()
@@ -19,7 +22,11 @@ def test_get_config_dir(tmp_path, monkeypatch):
 
 def test_save_and_load_credentials(tmp_path, monkeypatch):
     """Test saving and loading credentials."""
-    monkeypatch.setenv("HOME", str(tmp_path))
+    # Mock platformdirs to use temp directory
+    def mock_user_config_dir(app_name, app_author):
+        return str(tmp_path / ".config" / app_name)
+
+    monkeypatch.setattr("pln_search.config.user_config_dir", mock_user_config_dir)
 
     config = ConfigManager()
 
@@ -39,7 +46,11 @@ def test_save_and_load_credentials(tmp_path, monkeypatch):
 
 def test_load_credentials_missing(tmp_path, monkeypatch):
     """Test loading credentials when file doesn't exist."""
-    monkeypatch.setenv("HOME", str(tmp_path))
+    # Mock platformdirs to use temp directory
+    def mock_user_config_dir(app_name, app_author):
+        return str(tmp_path / ".config" / app_name)
+
+    monkeypatch.setattr("pln_search.config.user_config_dir", mock_user_config_dir)
 
     config = ConfigManager()
     loaded = config.load_credentials()
@@ -49,7 +60,11 @@ def test_load_credentials_missing(tmp_path, monkeypatch):
 
 def test_clear_credentials(tmp_path, monkeypatch):
     """Test clearing credentials."""
-    monkeypatch.setenv("HOME", str(tmp_path))
+    # Mock platformdirs to use temp directory
+    def mock_user_config_dir(app_name, app_author):
+        return str(tmp_path / ".config" / app_name)
+
+    monkeypatch.setattr("pln_search.config.user_config_dir", mock_user_config_dir)
 
     config = ConfigManager()
     config.save_credentials({"refresh_token": "test"})
