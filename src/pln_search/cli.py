@@ -9,19 +9,41 @@ from pln_search.api import PLNAPIClient, APIError
 from pln_search.formatters import OutputFormatter
 
 
-@click.group()
+class DefaultCommandGroup(click.Group):
+    """Click Group that defaults to 'search' command if no command is specified."""
+
+    def resolve_command(self, ctx, args):
+        """Resolve command, defaulting to 'search' if first arg is not a known command."""
+        if not args:
+            # No args, just return None and let invoke_without_command handle it
+            return None, None, []
+
+        # Check if first arg is a known command
+        cmd_name = args[0]
+        if cmd_name in self.commands:
+            # It's a known command, let Click handle it normally
+            return super().resolve_command(ctx, args)
+
+        # Not a known command, default to 'search' and treat first arg as query
+        return 'search', self.commands['search'], args
+
+
+@click.group(cls=DefaultCommandGroup, invoke_without_command=True)
 @click.pass_context
 def main(ctx):
     """PLN Search - Search the PLN Directory API.
 
     Examples:
-        pln-search search "John Doe"          # Global search
-        pln-search search --members "John"    # Search members
-        pln-search search --teams "Protocol"  # Search teams
+        pln-search "John Doe"                 # Global search (default)
+        pln-search --members "John"           # Search members
+        pln-search --teams "Protocol"         # Search teams
+        pln-search search "John Doe"          # Explicit search command
         pln-search auth login                 # Show auth setup
         pln-search auth token --interactive   # Configure token
     """
-    pass
+    # If no subcommand was invoked, show help
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
 
 @main.command()
