@@ -1,11 +1,23 @@
 # pln-search
 
+[![Tests](https://github.com/dannyob/pln-search/workflows/Test/badge.svg)](https://github.com/dannyob/pln-search/actions)
+
 Command-line tool for searching the PLN Directory API.
 
 ## Installation
 
+### From PyPI (recommended)
+
 ```bash
-uv pip install -e .
+pip install pln-search
+```
+
+### From source
+
+```bash
+git clone https://github.com/dannyob/pln-search.git
+cd pln-search
+pip install -e .
 ```
 
 ## Usage
