@@ -46,6 +46,28 @@ clean: ## Clean build artifacts
 build: clean ## Build distribution
 	$(UV) build
 
+check-version: ## Check if version needs to be updated for PyPI
+	@echo "Current version in pyproject.toml:"
+	@grep "^version" pyproject.toml
+	@echo ""
+	@echo "Latest version on PyPI (if package exists):"
+	@python -m pip index versions $(PACKAGE_NAME) 2>/dev/null || echo "Package not found on PyPI (this is normal for new packages)"
+
+upload-test: build ## Upload to TestPyPI
+	$(UV) pip install twine
+	$(UV) run twine check dist/*
+	$(UV) run twine upload --repository testpypi dist/*
+	@echo ""
+	@echo "Test installation with:"
+	@echo "pip install --index-url https://test.pypi.org/simple/ $(PACKAGE_NAME)"
+
+upload: build ## Upload to PyPI (production)
+	$(UV) pip install twine
+	$(UV) run twine check dist/*
+	@echo "About to upload to PyPI. This cannot be undone!"
+	@read -p "Are you sure? Type 'yes' to continue: " confirm && [ "$$confirm" = "yes" ]
+	$(UV) run twine upload dist/*
+
 run: ## Run pln-search (development)
 	$(UV) run pln-search
 
