@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/dannyob/pln-search/workflows/Test/badge.svg)](https://github.com/dannyob/pln-search/actions)
 
-Command-line tool for searching the PLN Directory API.
+Command-line tool for searching the Protocol Labs Network Directory API.
 
 ## Installation
 
