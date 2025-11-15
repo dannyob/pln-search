@@ -12,6 +12,8 @@ Command-line tool for searching the Protocol Labs Network Directory API.
 pip install pln-search
 ```
 
+Alternatrively, you can use [`uv`](https://docs.astral.sh/uv/getting-started/) to run `pln-search` without installing it with `uvx "pln-search"`.
+
 ### From source
 
 ```bash
